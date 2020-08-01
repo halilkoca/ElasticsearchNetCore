@@ -4,6 +4,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Nest;
 using ElasticNetCore.Mapping;
+using ElasticNetCore.Entities;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace ElasticNetCore.Services
 {
@@ -11,8 +14,7 @@ namespace ElasticNetCore.Services
     public class ElasticsearchService : IElasticsearchService
     {
 
-        private readonly IElasticClient _elasticClient;
-        private readonly IConfiguration _configuration; 
+        private readonly IConfiguration _configuration;
         private readonly IElasticClient _client;
 
         public ElasticsearchService(IConfiguration configuration)
@@ -43,7 +45,7 @@ namespace ElasticNetCore.Services
             if (anyy.Exists)
                 return;
 
-            var response = await _client.Indices.CreateAsync(indexName, 
+            var response = await _client.Indices.CreateAsync(indexName,
                 ci => ci
                     .Index(indexName)
                     .ProductMapping()
@@ -54,14 +56,46 @@ namespace ElasticNetCore.Services
 
         }
 
+        public async Task InsertDocument(string indexName, Product product)
+        {
+
+            // var response = await _client.CreateAsync(product, q => q.Index(indexName));
+            // if (response.ApiCall?.HttpStatusCode == 409)
+            // {
+            //     var response2 = await _client.UpdateAsync<Product>(a => a.Index(indexName).Doc(product));
+            //     var asd = response2;
+            // }
+
+        }
+
+        public async Task InsertDocuments(string indexName, List<Product> products)
+        {
+            var asyncBulkIndexResponse = await _client.IndexManyAsync(products, index: indexName);
+            System.Console.WriteLine(asyncBulkIndexResponse.Items);
+        }
+
+
+        public async Task<Product> GetDocument(string indexName, int id)
+        {
+            var response = await _client.GetAsync<Product>(id, q => q.Index(indexName));
+
+            return response.Source;
+
+        }
+
+        public async Task<List<Product>> GetDocuments(string indexName)
+        {
+            var response = await _client.SearchAsync<Product>(q => q.Index(indexName).Scroll("5m"));
+            return response.Documents.ToList();
+        }
     }
-
-
-
 
     public interface IElasticsearchService
     {
         Task ChekIndex(string indexName);
-        
+        Task InsertDocument(string indexName, Product product);
+        Task InsertDocuments(string indexName, List<Product> products);
+        Task<Product> GetDocument(string indexName, int id);
+        Task<List<Product>> GetDocuments(string indexName);
     }
 }

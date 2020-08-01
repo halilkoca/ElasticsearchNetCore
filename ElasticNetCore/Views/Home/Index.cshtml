@@ -1,8 +1,77 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
-}
+﻿@model List<ElasticNetCore.Entities.Product>
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://docs.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+@{
+ViewData["Title"] = "Home Page";
+}
+<form method="POST" class="productForm">
+    @Html.AntiForgeryToken()
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="row">
+        <div class="col-md-11 rows">
+            <div class="row row1" id="row1">
+                <div class="col-md-4">
+                    <label>İsim</label>
+                    <input class="form-control i1" type="text" name="products[0].name" />
+                </div>
+                <div class="col-md-4">
+                    <label>Fiyat</label>
+                    <input class="form-control i2" type="number" min="0" max="99999" name="products[0].price" />
+                </div>
+
+                <div class="col-md-4">
+                    <label>Image</label>
+                    <input class="form-control i3" type="url" name="products[0].imageUrl" />
+                </div>
+            </div>
+        </div>
+        <div class="col-md-1">
+            <label>Row</label>
+            <button type="button" onclick="addRow(true)">
+                +
+            </button>
+            <button type="button" onclick="addRow()">
+                -
+            </button>
+        </div>
+    </div>
+    <div class="row float-right">
+        <div class="col-md-12">
+            <button class="btn btn-success" type="submit">Kaydet</button>
+        </div>
+    </div>
+</form>
+
+<hr style="margin-top: 3rem;" />
+
+<div class="row">
+    <div class="col-md-6">
+        <ul class="list-group">
+            @foreach (var item in Model)
+            {
+            <li class="list-group-item">Ürün Adı: @item.Name | Fiyatı: @item.Price | <img src="@item.ImageUrl" width="50"
+                    height="50" /> </li>
+            }
+
+        </ul>
+    </div>
 </div>
+
+@section Scripts{
+
+<script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+<script src="~/lib/jquery-validation-unobtrusive/jquery.validate.unobtrusive.min.js"></script>
+
+<script>
+    function addRow(addordelete) {
+
+        if (addordelete) {
+            $("#row1").clone().appendTo(".rows");
+            $('.i1').last().attr('name', 'products[' + ($(".row1").length - 1) + '].name');
+            $('.i2').last().attr('name', 'products[' + ($(".row1").length - 1) + '].price');
+            $('.i3').last().attr('name', 'products[' + ($(".row1").length - 1) + '].image');
+        } else if ($(".row1").length > 1) {
+            $(".row1").last().remove();
+        }
+    }
+</script>
+}

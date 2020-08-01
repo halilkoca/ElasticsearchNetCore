@@ -1,12 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using ElasticNetCore.Models;
 using ElasticNetCore.Services;
+using ElasticNetCore.Entities;
 
 namespace ElasticNetCore.Controllers
 {
@@ -16,7 +15,7 @@ namespace ElasticNetCore.Controllers
         private readonly IElasticsearchService _elasticsearch;
 
         public HomeController(
-            
+
             ILogger<HomeController> logger
             , IElasticsearchService elasticsearch
             )
@@ -25,17 +24,36 @@ namespace ElasticNetCore.Controllers
             _elasticsearch = elasticsearch;
         }
 
-        public IActionResult Index()
+        public async Task<IActionResult> Index()
         {
 
-            _elasticsearch.ChekIndex("product");
+            await _elasticsearch.ChekIndex("product");
 
-            return View();
+            // test insert
+            //await _elasticsearch.InsertDocument("product", new Product { ImageUrl = "https://www.cihatayaz.com/wp-content/uploads/2016/06/hevesli-kitap-okumak.jpg", Name = "Kürk Mantolu Madonna", Price = 25.5 });
+
+            var model = await GetItems();
+
+            return View(model);
         }
 
-        public IActionResult Privacy()
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Index([ModelBinder] List<Product> products)
         {
-            return View();
+
+            if (ModelState.IsValid)
+            {
+                await _elasticsearch.InsertDocuments("product", products);
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        private async Task<List<Product>> GetItems()
+        {
+            await Task.Delay(500);
+            return await _elasticsearch.GetDocuments("product");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
