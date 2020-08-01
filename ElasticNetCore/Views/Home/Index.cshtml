@@ -1,8 +1,9 @@
 ﻿@model List<ElasticNetCore.Entities.Product>
 
 @{
-ViewData["Title"] = "Home Page";
+    ViewData["Title"] = "Home Page";
 }
+
 <form method="POST" class="productForm">
     @Html.AntiForgeryToken()
     @Html.ValidationSummary(true, "", new { @class = "text-danger" })
@@ -74,4 +75,5 @@ ViewData["Title"] = "Home Page";
         }
     }
 </script>
+
 }

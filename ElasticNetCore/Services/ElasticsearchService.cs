@@ -59,19 +59,17 @@ namespace ElasticNetCore.Services
         public async Task InsertDocument(string indexName, Product product)
         {
 
-            // var response = await _client.CreateAsync(product, q => q.Index(indexName));
-            // if (response.ApiCall?.HttpStatusCode == 409)
-            // {
-            //     var response2 = await _client.UpdateAsync<Product>(a => a.Index(indexName).Doc(product));
-            //     var asd = response2;
-            // }
+            var response = await _client.CreateAsync(product, q => q.Index(indexName));
+            if (response.ApiCall?.HttpStatusCode == 409)
+            {
+                await _client.UpdateAsync<Product>(response.Id, a => a.Index(indexName).Doc(product));
+            }
 
         }
 
         public async Task InsertDocuments(string indexName, List<Product> products)
         {
-            var asyncBulkIndexResponse = await _client.IndexManyAsync(products, index: indexName);
-            System.Console.WriteLine(asyncBulkIndexResponse.Items);
+            await _client.IndexManyAsync(products, index: indexName);
         }
 
 
